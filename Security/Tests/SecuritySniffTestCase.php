@@ -13,4 +13,8 @@ abstract class SecuritySniffTestCase extends AbstractSniffUnitTest
         $this->standardsDir = __DIR__ . '/../';
         $this->testsDir     = __DIR__ . '/';
     }
+
+    abstract protected function getErrorList(): array;
+
+    abstract protected function getWarningList(): array;
 }
