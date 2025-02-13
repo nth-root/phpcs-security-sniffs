@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace NthRoot\PhpSecuritySniffs\Security\Sniffs;
 
+use PHP_CodeSniffer\Files\File;
+
 use function array_slice;
 use function in_array;
 
+use const T_OPEN_PARENTHESIS;
 use const T_VARIABLE;
 
 final class UserInputDetector
 {
     private const array SUPERGLOBALS = ['$_GET', '$_POST', '$_REQUEST', '$_COOKIE', '$_FILES', '$_SERVER', '$_ENV'];
 
-    /**
-     * @param array<array{code: int, content: string}> $tokens
-     */
-    public function containsVariableInput(array $tokens, int $openingParenthesis): bool
+    public function containsVariableInput(File $file, int $start): bool
     {
-        $tokens = $this->getArgumentTokens($tokens, $openingParenthesis);
+        $tokens = $this->getArgumentTokens($file, $start);
 
         foreach ($tokens as $token) {
             if ($token['code'] === T_VARIABLE) {
@@ -29,12 +29,9 @@ final class UserInputDetector
         return false;
     }
 
-    /**
-     * @param array<array{code: int, content: string}> $tokens
-     */
-    public function containsUserInput(array $tokens, int $openingParenthesis): bool
+    public function containsUserInput(File $file, int $start): bool
     {
-        $tokens = $this->getArgumentTokens($tokens, $openingParenthesis);
+        $tokens = $this->getArgumentTokens($file, $start);
 
         foreach ($tokens as $token) {
             if ($this->isUserInput($token)) {
@@ -45,11 +42,19 @@ final class UserInputDetector
         return false;
     }
 
-    private function getArgumentTokens(array $tokens, int $openingParenthesis): array
+    private function getArgumentTokens(File $file, int $start): array
     {
-        $closingParenthesis = $tokens[$openingParenthesis]['parenthesis_closer'];
+        $tokens = $file->getTokens();
 
-        return array_slice($tokens, $openingParenthesis + 1, $closingParenthesis - $openingParenthesis);
+        if ($tokens[$start]['code'] === T_OPEN_PARENTHESIS) {
+            $closingParenthesis = $tokens[$start]['parenthesis_closer'];
+
+            return array_slice($tokens, $start + 1, $closingParenthesis - $start);
+        }
+
+        $endOfStatement = $file->findEndOfStatement($start);
+
+        return array_slice($tokens, $start, $endOfStatement - $start);
     }
 
     /**

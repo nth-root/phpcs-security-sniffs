@@ -26,11 +26,9 @@ final class EvalSniff implements Sniff
 
     public function process(File $phpcsFile, $stackPtr): void
     {
-        $tokens = $phpcsFile->getTokens();
-
         $openParenthesis = $phpcsFile->findNext(T_OPEN_PARENTHESIS, $stackPtr, null, false, null, true);
 
-        if ($this->userInputDetector->containsUserInput($tokens, $openParenthesis)) {
+        if ($this->userInputDetector->containsUserInput($phpcsFile, $openParenthesis)) {
             $phpcsFile->addError(
                 'Passing user input to eval() can lead to eval injection and remote code execution (CWE-95)',
                 $stackPtr,
@@ -40,7 +38,7 @@ final class EvalSniff implements Sniff
             return;
         }
 
-        if ($this->userInputDetector->containsVariableInput($tokens, $openParenthesis)) {
+        if ($this->userInputDetector->containsVariableInput($phpcsFile, $openParenthesis)) {
             $phpcsFile->addError(
                 'Passing variable input to eval() can lead to eval injection and remote code execution (CWE-95)',
                 $stackPtr,
