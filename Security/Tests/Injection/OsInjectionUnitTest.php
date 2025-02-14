@@ -8,8 +8,14 @@ use NthRoot\PhpSecuritySniffs\Security\Tests\SecuritySniffTestCase;
 
 final class OsInjectionUnitTest extends SecuritySniffTestCase
 {
-    protected function getErrorList(): array
+    protected function getErrorList(string $filename = ''): array
     {
+        if ($filename === 'OsInjectionUnitTest.Indirect.inc') {
+            return [
+                7 => 1,
+            ];
+        }
+
         return [
             3 => 1,
         ];
